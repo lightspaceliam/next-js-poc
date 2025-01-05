@@ -1,5 +1,5 @@
 // import { sql } from '@vercel/postgres';
-import sql from 'mssql';
+import sql, { ConnectionPool } from 'mssql';
 import {
   CustomerField,
   CustomersTableType,
@@ -9,23 +9,29 @@ import {
   Revenue,
 } from './definitions';
 import { formatCurrency } from './utils';
+import { revenue } from './placeholder-data';
 
-export async function fetchRevenue() {
+export async function fetchRevenue(): Promise<Array<Revenue>> {
   try {
-    await sql.connect(process.env.DB_CONN ?? '');
+    const connectionPool: ConnectionPool = await sql.connect(process.env.DB_CONN ?? '');
     // Artificially delay a response for demo purposes.
     // Don't do this in production :)
 
     // console.log('Fetching revenue data...');
     // await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const data = await sql.query<Revenue>`
-      SELECT  * 
-      FROM    Revenue`;
+    const data = await connectionPool
+      .request()
+      .query<Revenue>`
+        SELECT  * 
+        FROM    Revenue`;
 
     // console.log('Data fetch completed after 3 seconds.');
-    console.log(data);
-    return data.output;
+    // console.log(`Rows Affected: ${data.rowsAffected}`);
+
+    await connectionPool.close();
+
+    return data?.recordset;
 
   } catch (error) {
     console.error('Database Error:', error);
@@ -49,7 +55,7 @@ export async function fetchLatestInvoices() {
       ORDER BY I.Date DESC`;
 
       
-    const latestInvoices = data.output.map((invoice: LatestInvoiceRaw) => ({
+    const latestInvoices = data.recordset.map((invoice: LatestInvoiceRaw) => ({
       ...invoice,
       amount: formatCurrency(invoice.amount),
     }));
@@ -79,10 +85,10 @@ export async function fetchCardData() {
       invoiceStatusPromise,
     ]);
 
-    const numberOfInvoices = Number(data[0].output[0].count ?? '0');
-    const numberOfCustomers = Number(data[1].output[0].count ?? '0');
-    const totalPaidInvoices = formatCurrency(data[2].output[0].paid ?? '0');
-    const totalPendingInvoices = formatCurrency(data[2].output[0].pending ?? '0');
+    const numberOfInvoices = Number(data[0].recordset[0].count ?? '0');
+    const numberOfCustomers = Number(data[1].recordset[0].count ?? '0');
+    const totalPaidInvoices = formatCurrency(data[2].recordset[0].paid ?? '0');
+    const totalPendingInvoices = formatCurrency(data[2].recordset[0].pending ?? '0');
 
     return {
       numberOfCustomers,
@@ -127,7 +133,7 @@ export async function fetchFilteredInvoices(
       FETCH NEXT ${ITEMS_PER_PAGE} ROWS ONLY
     `;
 
-    return invoices.output;
+    return invoices.recordset;
   } catch (error) {
     console.error('Database Error:', error);
     throw new Error('Failed to fetch invoices.');
@@ -150,7 +156,7 @@ export async function fetchInvoicesPages(query: string) {
               I.Status LIKE ${`%${query}%`}
   `;
 
-    const totalPages = Math.ceil(Number(count.output[0].count) / ITEMS_PER_PAGE);
+    const totalPages = Math.ceil(Number(count.recordset[0].count) / ITEMS_PER_PAGE);
     return totalPages;
   } catch (error) {
     console.error('Database Error:', error);
@@ -171,7 +177,7 @@ export async function fetchInvoiceById(id: string) {
       WHERE   I.Id = ${id};
     `;
 
-    const invoice = data.output.map((invoice: InvoiceForm) => ({
+    const invoice = data.recordset.map((invoice: InvoiceForm) => ({
       ...invoice,
       // Convert amount from cents to dollars
       amount: invoice.amount / 100,
@@ -194,7 +200,7 @@ export async function fetchCustomers() {
       ORDER BY [Name] ASC;
     `;
 
-    const customers = data.output;
+    const customers = data.recordset;
     return customers;
   } catch (err) {
     console.error('Database Error:', err);
@@ -226,7 +232,7 @@ export async function fetchFilteredCustomers(query: string) {
       ORDER BY C.Name ASC
 	  `;
 
-    const customers = data.output.map((customer: CustomersTableType) => ({
+    const customers = data.recordset.map((customer: CustomersTableType) => ({
       ...customer,
       total_pending: formatCurrency(customer.total_pending),
       total_paid: formatCurrency(customer.total_paid),

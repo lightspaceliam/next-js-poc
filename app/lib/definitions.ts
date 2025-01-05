@@ -26,9 +26,10 @@ export type Invoice = {
   status: 'pending' | 'paid';
 };
 
+//  Capitalize because of our Db column name convention if we. If we had an API we wouldn't need to do this.
 export type Revenue = {
-  month: string;
-  revenue: number;
+  Month: string;
+  Revenue: number;
 };
 
 export type LatestInvoice = {

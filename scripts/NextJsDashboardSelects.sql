@@ -51,3 +51,22 @@ SELECT  TOP 5
       ORDER BY I.date DESC
       OFFSET 1 ROWS 
       FETCH NEXT 5 ROWS ONLY
+
+
+ SELECT  C.Id
+              , C.[Name]
+              , C.Email
+              , C.ImageUrl
+              , COUNT(I.Id) AS total_invoices
+              , SUM(CASE WHEN I.Status = 'pending' THEN I.Amount ELSE 0 END) AS total_pending
+              , SUM(CASE WHEN I.Status = 'paid' THEN I.Amount ELSE 0 END) AS total_paid
+      FROM    Customers AS C
+              LEFT JOIN Invoices AS I 
+                ON C.id = I.CustomerId
+    --   WHERE   C.Name LIKE ${`%${query}%`} OR
+    --           C.Email LIKE ${`%${query}%`}
+      GROUP BY C.Id
+              , C.Name
+              , C.Email
+              , C.ImageUrl
+      ORDER BY C.Name ASC
