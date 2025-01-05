@@ -3,10 +3,10 @@
 // For simplicity of teaching, we're manually defining these types.
 // However, these types are generated automatically if you're using an ORM such as Prisma.
 export type User = {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
+  Id: string;
+  Name: string;
+  Email: string;
+  Password: string;
 };
 
 export type Customer = {
@@ -33,27 +33,27 @@ export type Revenue = {
 };
 
 export type LatestInvoice = {
-  id: string;
-  name: string;
-  image_url: string;
-  email: string;
-  amount: string;
+  Id: string;
+  Name: string;
+  ImageUrl: string;
+  Email: string;
+  Amount: string;
 };
 
 // The database returns a number for amount, but we later format it to a string with the formatCurrency function
-export type LatestInvoiceRaw = Omit<LatestInvoice, 'amount'> & {
-  amount: number;
+export type LatestInvoiceRaw = Omit<LatestInvoice, 'Amount'> & {
+  Amount: number;
 };
 
 export type InvoicesTable = {
-  id: string;
-  customer_id: string;
-  name: string;
-  email: string;
-  image_url: string;
-  date: string;
-  amount: number;
-  status: 'pending' | 'paid';
+  Id: string;
+  CustomerId: string;
+  Name: string;
+  Email: string;
+  ImageUrl: string;
+  Date: string;
+  Amount: number;
+  Status: 'pending' | 'paid';
 };
 
 export type CustomersTableType = {
@@ -77,13 +77,13 @@ export type FormattedCustomersTable = {
 };
 
 export type CustomerField = {
-  id: string;
-  name: string;
+  Id: string;
+  Name: string;
 };
 
 export type InvoiceForm = {
-  id: string;
-  customer_id: string;
-  amount: number;
-  status: 'pending' | 'paid';
+  Id: string;
+  CustomerId: string;
+  Amount: number;
+  Status: 'pending' | 'paid';
 };

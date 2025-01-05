@@ -15,7 +15,7 @@
     "i": "^0.3.7",
     "mssql": "^11.0.1",
     "next": "latest",
-    "next-auth": "5.0.0-beta.19",
+    "next-auth": "5.0.0-beta.25",
     "npm": "^11.0.0",
     "postcss": "8.4.49",
     "react": "19.0.0",

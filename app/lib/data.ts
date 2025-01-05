@@ -41,8 +41,11 @@ export async function fetchRevenue(): Promise<Array<Revenue>> {
 
 export async function fetchLatestInvoices() {
   try {
-    await sql.connect(process.env.DB_CONN ?? '');
-    const data = await sql.query<LatestInvoiceRaw>`
+    const connectionPool: ConnectionPool = await sql.connect(process.env.DB_CONN ?? '');
+    
+    const data = await connectionPool
+      .request()
+      .query<LatestInvoiceRaw>`
       SELECT  TOP 5 
               I.Amount
               , C.Name
@@ -54,11 +57,13 @@ export async function fetchLatestInvoices() {
                 ON I.CustomerId = C.id
       ORDER BY I.Date DESC`;
 
-      
+      await connectionPool.close();
+        
     const latestInvoices = data.recordset.map((invoice: LatestInvoiceRaw) => ({
       ...invoice,
-      amount: formatCurrency(invoice.amount),
+      amount: formatCurrency(invoice.Amount),
     }));
+
     return latestInvoices;
   } catch (error) {
     console.error('Database Error:', error);
